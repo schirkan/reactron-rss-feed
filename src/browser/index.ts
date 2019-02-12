@@ -13,11 +13,11 @@ export const components: IReactronComponentDefinition[] = [{
     name: 'url',
     valueType: 'string',
   }, {
-    displayName: 'Header text',
-    name: 'headerText',
-    valueType: 'string',
-    defaultValue: 'Calendar',
-  }, {
+  //   displayName: 'Header text',
+  //   name: 'headerText',
+  //   valueType: 'string',
+  //   defaultValue: 'RSS Feed',
+  // }, {
     displayName: 'Show header',
     name: 'showHeader',
     valueType: 'boolean',

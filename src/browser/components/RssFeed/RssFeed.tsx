@@ -2,7 +2,7 @@ import { IReactronComponentContext, topicNames } from '@schirkan/reactron-interf
 import moment from 'moment';
 import * as React from 'react';
 import { IRssFeedService } from 'src/common/interfaces/IRssFeedService';
-import { IRssFeed } from 'src/common/interfaces/IRssFeed';
+import { IRssFeed, IRssFeedItem } from 'src/common/interfaces/IRssFeed';
 
 import './RssFeed.scss';
 
@@ -25,6 +25,7 @@ export class RssFeed extends React.Component<IRssFeedProps, IRssFeedState> {
     super(props);
     this.state = { loading: false };
     this.loadData = this.loadData.bind(this);
+    this.renderRssFeedItem = this.renderRssFeedItem.bind(this);
   }
 
   public componentDidMount() {
@@ -57,8 +58,29 @@ export class RssFeed extends React.Component<IRssFeedProps, IRssFeedState> {
     }
   }
 
+  private renderRssFeedItem(item: IRssFeedItem) {
+    const timezone = this.context.settings.timezone;
+    const date = moment(item.isoDate).tz(timezone);
+    return (
+      <React.Fragment key={(item.guid || '') + (item.title || '')}>
+        <div>{date.format('LT')}</div>
+        <div>{item.title}</div>
+      </React.Fragment>
+    );
+  }
+
   private renderRssFeed() {
-    return null;
+    if (!this.state.data) {
+      return null;
+    }
+
+    return (
+      <div className="feed">
+        <div>Time</div>
+        <div>Title</div>
+        {this.state.data.items.map(this.renderRssFeedItem)}
+      </div>
+    );
   }
 
   private renderHeader() {
@@ -67,8 +89,8 @@ export class RssFeed extends React.Component<IRssFeedProps, IRssFeedState> {
     }
     return (
       <h2>
-        {this.props.headerText}
-        {(this.state.loading) && this.context.renderLoading(undefined, '1x', { display: 'inline-block', marginLeft: '8px' })}
+        {this.state.data && this.state.data.title}
+        {this.state.loading && this.context.renderLoading(undefined, '1x', { display: 'inline-block', marginLeft: '8px' })}
       </h2>
     );
   }

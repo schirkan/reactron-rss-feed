@@ -2,6 +2,9 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+var Parser = _interopDefault(require('rss-parser'));
 var request = require('request-promise-native');
 
 /*! *****************************************************************************
@@ -44,18 +47,42 @@ class RssFeedService {
         });
     }
     getFeedEntries(url) {
-        const result = this.getOrCreate(url, () => {
-            return this.getResponseInternal('get', url, {}, RssFeedService.mapToRssFeed);
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.getOrCreate(url, () => __awaiter(this, void 0, void 0, function* () {
+                const response = yield this.getResponseInternal('get', url);
+                let parser = new Parser();
+                let feed = yield parser.parseString(response);
+                return RssFeedService.mapToRssFeed(feed);
+            }));
         });
-        return result;
     }
     static mapToRssFeed(data) {
-        return data; // TODO
+        const feed = {
+            description: data.description,
+            feedUrl: data.feedUrl,
+            link: data.link,
+            title: data.title,
+            items: []
+        };
+        if (data.items) {
+            feed.items = data.items.map(x => ({
+                link: x.link,
+                guid: x.guid,
+                title: x.title,
+                pubDate: x.pubDate,
+                creator: x.creator,
+                content: x.content,
+                isoDate: x.isoDate,
+                categories: x.categories,
+                contentSnippet: x.contentSnippet,
+            }));
+        }
+        return feed;
     }
-    getResponseInternal(method, url, requestOptions, mapper) {
+    getResponseInternal(method, url, requestOptions) {
         return __awaiter(this, void 0, void 0, function* () {
             this.context.log.debug('fetch', url);
-            requestOptions = Object.assign({}, requestOptions, { json: true, rejectUnauthorized: false, resolveWithFullResponse: true });
+            requestOptions = Object.assign({}, requestOptions, { rejectUnauthorized: false, resolveWithFullResponse: true });
             try {
                 let response;
                 switch (method) {
@@ -74,8 +101,7 @@ class RssFeedService {
                     this.context.log.error(response.statusMessage, response.body);
                     throw new Error(response.statusMessage);
                 }
-                this.context.log.debug(response.body);
-                return mapper(response.body);
+                return response.body;
             }
             catch (error) {
                 this.context.log.error(error);
@@ -107,8 +133,8 @@ class RssFeedService {
 
 // export reactron service definition
 const services = [{
-        description: 'Service for public transport in germany',
-        displayName: 'Public transport information service',
+        description: 'Service for RSS Feeds',
+        displayName: 'RSS Feed Service',
         fields: [{
                 defaultValue: 5,
                 description: 'Cache duration in minutes',
@@ -119,7 +145,7 @@ const services = [{
                 maxValue: 60,
                 stepSize: 1
             }],
-        name: 'PublicTransportService',
+        name: 'RssFeedService',
         service: RssFeedService
     }];
 

@@ -19,6 +19,7 @@ export default {
     external: [
         '@schirkan/reactron-interfaces',
         'electron',
-        'request-promise-native'
+        'request-promise-native',
+        'rss-parser'
     ]
 };

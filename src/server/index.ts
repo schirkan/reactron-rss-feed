@@ -8,8 +8,8 @@ export * from '../common/interfaces/IRssFeedServiceOptions';
 
 // export reactron service definition
 export const services: IReactronServiceDefinition[] = [{
-  description: 'Service for public transport in germany',
-  displayName: 'Public transport information service',
+  description: 'Service for RSS Feeds',
+  displayName: 'RSS Feed Service',
   fields: [{
     defaultValue: 5,
     description: 'Cache duration in minutes',
@@ -20,6 +20,6 @@ export const services: IReactronServiceDefinition[] = [{
     maxValue: 60,
     stepSize: 1
   }],
-  name: 'PublicTransportService',
+  name: 'RssFeedService',
   service: RssFeedService
 }];

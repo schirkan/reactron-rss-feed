@@ -1,6 +1,6 @@
 {
   "name": "reactron-rss-feed",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0",
   "author": {
     "name": "Martin Pietschmann",
     "email": "schirkan@gmail.com"
@@ -22,7 +22,8 @@
   },
   "dependencies": {
     "request": "^2.88.0",
-    "request-promise-native": "^1.0.5"
+    "request-promise-native": "^1.0.5",
+    "rss-parser": "^3.6.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",

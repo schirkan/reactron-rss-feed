@@ -1,12 +1,15 @@
-System.register(['@schirkan/reactron-interfaces', 'react'], function (exports, module) {
+System.register(['@schirkan/reactron-interfaces', 'moment', 'react'], function (exports, module) {
     'use strict';
-    var topicNames, Component, createElement;
+    var topicNames, moment, Component, createElement, Fragment;
     return {
         setters: [function (module) {
             topicNames = module.topicNames;
         }, function (module) {
+            moment = module.default;
+        }, function (module) {
             Component = module.Component;
             createElement = module.createElement;
+            Fragment = module.Fragment;
         }],
         execute: function () {
 
@@ -61,14 +64,15 @@ System.register(['@schirkan/reactron-interfaces', 'react'], function (exports, m
               }
             }
 
-            var css = "";
+            var css = "section.RssFeed .feed {\n  display: grid;\n  grid-template-columns: -webkit-min-content auto;\n  grid-template-columns: min-content auto;\n  grid-column-gap: 8px;\n  white-space: nowrap; }\n  section.RssFeed .feed > div {\n    overflow: hidden; }\n";
             styleInject(css);
 
-            class RssFeed$1 extends Component {
+            class RssFeed extends Component {
                 constructor(props) {
                     super(props);
                     this.state = { loading: false };
                     this.loadData = this.loadData.bind(this);
+                    this.renderRssFeedItem = this.renderRssFeedItem.bind(this);
                 }
                 componentDidMount() {
                     this.context.topics.subscribe(topicNames.refresh, this.loadData);
@@ -97,16 +101,29 @@ System.register(['@schirkan/reactron-interfaces', 'react'], function (exports, m
                         }
                     });
                 }
+                renderRssFeedItem(item) {
+                    const timezone = this.context.settings.timezone;
+                    const date = moment(item.isoDate).tz(timezone);
+                    return (createElement(Fragment, { key: (item.guid || '') + (item.title || '') },
+                        createElement("div", null, date.format('LT')),
+                        createElement("div", null, item.title)));
+                }
                 renderRssFeed() {
-                    return null;
+                    if (!this.state.data) {
+                        return null;
+                    }
+                    return (createElement("div", { className: "feed" },
+                        createElement("div", null, "Time"),
+                        createElement("div", null, "Title"),
+                        this.state.data.items.map(this.renderRssFeedItem)));
                 }
                 renderHeader() {
                     if (!this.props.showHeader) {
                         return null;
                     }
                     return (createElement("h2", null,
-                        this.props.headerText,
-                        (this.state.loading) && this.context.renderLoading(undefined, '1x', { display: 'inline-block', marginLeft: '8px' })));
+                        this.state.data && this.state.data.title,
+                        this.state.loading && this.context.renderLoading(undefined, '1x', { display: 'inline-block', marginLeft: '8px' })));
                 }
                 render() {
                     if (this.state.error) {
@@ -119,10 +136,10 @@ System.register(['@schirkan/reactron-interfaces', 'react'], function (exports, m
                         this.renderHeader(),
                         this.renderRssFeed()));
                 }
-            } exports('RssFeed', RssFeed$1);
+            } exports('RssFeed', RssFeed);
 
             const components = exports('components', [{
-                    component: RssFeed$1,
+                    component: RssFeed,
                     name: 'RssFeed',
                     description: 'RssFeed',
                     displayName: 'RssFeed',
@@ -131,11 +148,11 @@ System.register(['@schirkan/reactron-interfaces', 'react'], function (exports, m
                             name: 'url',
                             valueType: 'string',
                         }, {
-                            displayName: 'Header text',
-                            name: 'headerText',
-                            valueType: 'string',
-                            defaultValue: 'Calendar',
-                        }, {
+                            //   displayName: 'Header text',
+                            //   name: 'headerText',
+                            //   valueType: 'string',
+                            //   defaultValue: 'RSS Feed',
+                            // }, {
                             displayName: 'Show header',
                             name: 'showHeader',
                             valueType: 'boolean',

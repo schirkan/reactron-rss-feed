@@ -1,8 +1,9 @@
 import { IReactronServiceContext } from '@schirkan/reactron-interfaces';
-import * as request from 'request-promise-native';
 import { IRssFeedServiceOptions } from 'src/common/interfaces/IRssFeedServiceOptions';
 import { IRssFeedService } from 'src/common/interfaces/IRssFeedService';
 import { IRssFeed } from 'src/common/interfaces/IRssFeed';
+import Parser, { Output } from 'rss-parser';
+import * as request from 'request-promise-native';
 
 interface ICacheItem {
   timestamp: number;
@@ -23,21 +24,43 @@ export class RssFeedService implements IRssFeedService {
     return this.options;
   }
 
-  getFeedEntries(url: string): Promise<IRssFeed> {
-    const result = this.getOrCreate<IRssFeed>(url, () => {
-      return this.getResponseInternal('get', url, {}, RssFeedService.mapToRssFeed);
+  public async getFeedEntries(url: string): Promise<IRssFeed> {
+    return this.getOrCreate<IRssFeed>(url, async () => {
+      const response = await this.getResponseInternal<string>('get', url);
+      let parser = new Parser();
+      let feed = await parser.parseString(response);
+      return RssFeedService.mapToRssFeed(feed);
     });
-    return result;
   }
 
-  public static mapToRssFeed(data: any): IRssFeed {
-    return data; // TODO
+  public static mapToRssFeed(data: Output): IRssFeed {
+    const feed: IRssFeed = {
+      description: data.description,
+      feedUrl: data.feedUrl,
+      link: data.link,
+      title: data.title,
+      items: []
+    };
+    if (data.items) {
+      feed.items = data.items.map(x => ({
+        link: x.link,
+        guid: x.guid,
+        title: x.title,
+        pubDate: x.pubDate,
+        creator: x.creator,
+        content: x.content,
+        isoDate: x.isoDate,
+        categories: x.categories,
+        contentSnippet: x.contentSnippet,
+      }));
+    }
+    return feed;
   }
 
   private async getResponseInternal<TResponse>(method: 'get' | 'post', url: string,
-    requestOptions: request.RequestPromiseOptions, mapper: (response: any) => TResponse): Promise<TResponse> {
+    requestOptions?: request.RequestPromiseOptions): Promise<TResponse> {
     this.context.log.debug('fetch', url);
-    requestOptions = { ...requestOptions, json: true, rejectUnauthorized: false, resolveWithFullResponse: true };
+    requestOptions = { ...requestOptions, rejectUnauthorized: false, resolveWithFullResponse: true };
 
     try {
       let response: request.FullResponse | undefined;
@@ -57,8 +80,7 @@ export class RssFeedService implements IRssFeedService {
         this.context.log.error(response.statusMessage, response.body);
         throw new Error(response.statusMessage);
       }
-      this.context.log.debug(response.body);
-      return mapper(response.body);
+      return response.body;
     } catch (error) {
       this.context.log.error(error);
       throw error;
