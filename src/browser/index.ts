@@ -13,14 +13,28 @@ export const components: IReactronComponentDefinition[] = [{
     name: 'url',
     valueType: 'string',
   }, {
-  //   displayName: 'Header text',
-  //   name: 'headerText',
-  //   valueType: 'string',
-  //   defaultValue: 'RSS Feed',
-  // }, {
     displayName: 'Show header',
     name: 'showHeader',
     valueType: 'boolean',
     defaultValue: true,
+  }, {
+    displayName: 'Show time',
+    name: 'showTime',
+    valueType: 'boolean',
+    defaultValue: true,
+  }, {
+    displayName: 'Visible entries',
+    name: 'visibleEntries',
+    valueType: 'number',
+    defaultValue: 10,
+    minValue: 1,
+    maxValue: 100,
+  }, {
+    displayName: 'Scroll delay in s',
+    name: 'scrollDelay',
+    valueType: 'number',
+    defaultValue: 3,
+    minValue: 1,
+    maxValue: 100,
   }]
 }];

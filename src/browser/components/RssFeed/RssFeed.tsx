@@ -9,7 +9,9 @@ import './RssFeed.scss';
 interface IRssFeedProps {
   url: string;
   showHeader: boolean;
-  headerText: string;
+  showTime: boolean;
+  visibleEntries: number;
+  scrollDelay: number;
 }
 
 interface IRssFeedState {
@@ -59,13 +61,17 @@ export class RssFeed extends React.Component<IRssFeedProps, IRssFeedState> {
   }
 
   private renderRssFeedItem(item: IRssFeedItem) {
-    const timezone = this.context.settings.timezone;
-    const date = moment(item.isoDate).tz(timezone);
+    let dateCell = null;
+    if (this.props.showTime){
+      const timezone = this.context.settings.timezone;
+      const date = moment(item.isoDate).tz(timezone);
+      dateCell =  <span>{date.format('LT')}</span>;
+    }
     return (
-      <React.Fragment key={(item.guid || '') + (item.title || '')}>
-        <div>{date.format('LT')}</div>
-        <div>{item.title}</div>
-      </React.Fragment>
+      <div key={(item.guid || '') + (item.title || '')} className="feed-item">
+        {dateCell}
+        <span>{item.title}</span>
+      </div>
     );
   }
 
@@ -74,11 +80,11 @@ export class RssFeed extends React.Component<IRssFeedProps, IRssFeedState> {
       return null;
     }
 
+    const items = this.state.data.items.slice(0, this.props.visibleEntries);
+
     return (
       <div className="feed">
-        <div>Time</div>
-        <div>Title</div>
-        {this.state.data.items.map(this.renderRssFeedItem)}
+        {items.map(this.renderRssFeedItem)}
       </div>
     );
   }

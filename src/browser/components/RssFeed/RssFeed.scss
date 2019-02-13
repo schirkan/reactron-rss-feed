@@ -1,11 +1,11 @@
 section.RssFeed {
     .feed {
-        display: grid;
-        grid-template-columns: min-content auto;
-        grid-column-gap: 8px;
         white-space: nowrap;
         &>div {
             overflow: hidden;
+        }
+        .feed-item span {
+            margin-right: 8px;
         }
     }
 }

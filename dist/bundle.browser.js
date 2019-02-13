@@ -1,6 +1,6 @@
 System.register(['@schirkan/reactron-interfaces', 'moment', 'react'], function (exports, module) {
     'use strict';
-    var topicNames, moment, Component, createElement, Fragment;
+    var topicNames, moment, Component, createElement;
     return {
         setters: [function (module) {
             topicNames = module.topicNames;
@@ -9,7 +9,6 @@ System.register(['@schirkan/reactron-interfaces', 'moment', 'react'], function (
         }, function (module) {
             Component = module.Component;
             createElement = module.createElement;
-            Fragment = module.Fragment;
         }],
         execute: function () {
 
@@ -64,7 +63,7 @@ System.register(['@schirkan/reactron-interfaces', 'moment', 'react'], function (
               }
             }
 
-            var css = "section.RssFeed .feed {\n  display: grid;\n  grid-template-columns: -webkit-min-content auto;\n  grid-template-columns: min-content auto;\n  grid-column-gap: 8px;\n  white-space: nowrap; }\n  section.RssFeed .feed > div {\n    overflow: hidden; }\n";
+            var css = "section.RssFeed .feed {\n  white-space: nowrap; }\n  section.RssFeed .feed > div {\n    overflow: hidden; }\n  section.RssFeed .feed .feed-item span {\n    margin-right: 8px; }\n";
             styleInject(css);
 
             class RssFeed extends Component {
@@ -102,20 +101,22 @@ System.register(['@schirkan/reactron-interfaces', 'moment', 'react'], function (
                     });
                 }
                 renderRssFeedItem(item) {
-                    const timezone = this.context.settings.timezone;
-                    const date = moment(item.isoDate).tz(timezone);
-                    return (createElement(Fragment, { key: (item.guid || '') + (item.title || '') },
-                        createElement("div", null, date.format('LT')),
-                        createElement("div", null, item.title)));
+                    let dateCell = null;
+                    if (this.props.showTime) {
+                        const timezone = this.context.settings.timezone;
+                        const date = moment(item.isoDate).tz(timezone);
+                        dateCell = createElement("span", null, date.format('LT'));
+                    }
+                    return (createElement("div", { key: (item.guid || '') + (item.title || ''), className: "feed-item" },
+                        dateCell,
+                        createElement("span", null, item.title)));
                 }
                 renderRssFeed() {
                     if (!this.state.data) {
                         return null;
                     }
-                    return (createElement("div", { className: "feed" },
-                        createElement("div", null, "Time"),
-                        createElement("div", null, "Title"),
-                        this.state.data.items.map(this.renderRssFeedItem)));
+                    const items = this.state.data.items.slice(0, this.props.visibleEntries);
+                    return (createElement("div", { className: "feed" }, items.map(this.renderRssFeedItem)));
                 }
                 renderHeader() {
                     if (!this.props.showHeader) {
@@ -148,15 +149,29 @@ System.register(['@schirkan/reactron-interfaces', 'moment', 'react'], function (
                             name: 'url',
                             valueType: 'string',
                         }, {
-                            //   displayName: 'Header text',
-                            //   name: 'headerText',
-                            //   valueType: 'string',
-                            //   defaultValue: 'RSS Feed',
-                            // }, {
                             displayName: 'Show header',
                             name: 'showHeader',
                             valueType: 'boolean',
                             defaultValue: true,
+                        }, {
+                            displayName: 'Show time',
+                            name: 'showTime',
+                            valueType: 'boolean',
+                            defaultValue: true,
+                        }, {
+                            displayName: 'Visible entries',
+                            name: 'visibleEntries',
+                            valueType: 'number',
+                            defaultValue: 10,
+                            minValue: 1,
+                            maxValue: 100,
+                        }, {
+                            displayName: 'Scroll delay in s',
+                            name: 'scrollDelay',
+                            valueType: 'number',
+                            defaultValue: 3,
+                            minValue: 1,
+                            maxValue: 100,
                         }]
                 }]);
 
