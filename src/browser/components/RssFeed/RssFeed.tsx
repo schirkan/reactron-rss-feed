@@ -10,6 +10,8 @@ interface IRssFeedProps {
   url: string;
   showHeader: boolean;
   showTime: boolean;
+  showContent: boolean;
+  maxEntries: number;
   visibleEntries: number;
   scrollDelay: number;
 }
@@ -18,25 +20,32 @@ interface IRssFeedState {
   loading: boolean;
   data?: IRssFeed;
   error?: any;
+  position: number;
 }
 
 export class RssFeed extends React.Component<IRssFeedProps, IRssFeedState> {
   public context: IReactronComponentContext;
+  private timer?: number;
 
   constructor(props: IRssFeedProps) {
     super(props);
-    this.state = { loading: false };
+    this.state = { loading: false, position: 0 };
     this.loadData = this.loadData.bind(this);
     this.renderRssFeedItem = this.renderRssFeedItem.bind(this);
+    this.scrollToNext = this.scrollToNext.bind(this);
   }
 
   public componentDidMount() {
     this.context.topics.subscribe(topicNames.refresh, this.loadData);
     this.loadData();
+
+    this.timer = window.setInterval(this.scrollToNext, this.props.scrollDelay * 1000);
   }
 
   public componentWillUnmount() {
     this.context.topics.unsubscribe(topicNames.refresh, this.loadData);
+
+    window.clearInterval(this.timer);
   }
 
   public componentDidUpdate(prevProps: any) {
@@ -49,10 +58,8 @@ export class RssFeed extends React.Component<IRssFeedProps, IRssFeedState> {
     const service = await this.context.getService<IRssFeedService>('RssFeedService');
     if (service) {
       this.setState({ loading: true });
-
       try {
         const data = await service.getFeedEntries(this.props.url);
-
         this.setState({ data, loading: false });
       } catch (error) {
         this.setState({ error, loading: false });
@@ -60,17 +67,46 @@ export class RssFeed extends React.Component<IRssFeedProps, IRssFeedState> {
     }
   }
 
-  private renderRssFeedItem(item: IRssFeedItem) {
+  private scrollToNext() {
+    this.setState(prevState => {
+      let newPosition = prevState.position - 1;
+      if (newPosition < 0) {
+        newPosition = this.props.visibleEntries - 1;
+      }
+      // let newPosition = prevState.position + 1;
+      // if (newPosition >= this.props.visibleEntries) {
+      //   newPosition = 0;
+      // }
+      return { position: newPosition };
+    });
+  }
+
+  private renderRssFeedItem(item: IRssFeedItem, index: number) {
     let dateCell = null;
-    if (this.props.showTime){
+    if (this.props.showTime) {
       const timezone = this.context.settings.timezone;
       const date = moment(item.isoDate).tz(timezone);
-      dateCell =  <span>{date.format('LT')}</span>;
+      dateCell = <span className="time">{date.format('LT')}</span>;
     }
+
+    const removeItemIndex = this.props.visibleEntries - 1; // 0;
+    const newItemIndex = 0; // this.props.visibleEntries - 1;;
+    let className = 'feed-item';
+    if (index === removeItemIndex) {
+      className += ' hide';
+    }
+    if (index === newItemIndex) {
+      className += ' show';
+    }
+    const animationDelay = (index === removeItemIndex) ? (this.props.scrollDelay - 1) + 's' : undefined;
+
     return (
-      <div key={(item.guid || '') + (item.title || '')} className="feed-item">
-        {dateCell}
-        <span>{item.title}</span>
+      <div key={(item.guid || '') + (item.title || '')} className={className} style={{ animationDelay }}>
+        <div className="feed-item-header">
+          {dateCell}
+          <span className="title">{item.title}</span>
+        </div>
+        {this.props.showContent && <div className="feed-item-content">{item.contentSnippet || item.content}</div>}
       </div>
     );
   }
@@ -79,12 +115,14 @@ export class RssFeed extends React.Component<IRssFeedProps, IRssFeedState> {
     if (!this.state.data) {
       return null;
     }
-
-    const items = this.state.data.items.slice(0, this.props.visibleEntries);
+    const items = this.state.data.items.slice(0, this.props.maxEntries);
+    const items1 = items.slice(this.state.position, this.props.visibleEntries);
+    const items2 = this.state.position > 0 ? items.slice(0, this.state.position) : [];
+    items1.push(...items2);
 
     return (
       <div className="feed">
-        {items.map(this.renderRssFeedItem)}
+        {items1.map(this.renderRssFeedItem)}
       </div>
     );
   }

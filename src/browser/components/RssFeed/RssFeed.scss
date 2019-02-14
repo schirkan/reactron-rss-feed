@@ -1,11 +1,63 @@
 section.RssFeed {
-    .feed {
-        white-space: nowrap;
-        &>div {
-            overflow: hidden;
+    @keyframes hide-feed-item {
+        0% {
+            max-height: 10em;
         }
-        .feed-item span {
-            margin-right: 8px;
+        50%{
+            opacity: 1;
+        }
+        100% {
+            max-height: 0;
+            opacity: 0;
+        }
+    }
+    @keyframes show-feed-item {
+        0% {
+            max-height: 0;
+            opacity: 0;
+        }
+        50%{
+            opacity: 1;
+        }
+        100% {
+            max-height: 10em;
+            opacity: 1;
+        }
+    }
+    .feed {
+        overflow: hidden;
+        .feed-item {
+            overflow: hidden;
+            &.hide{
+                animation: hide-feed-item 1s;
+            }
+            &.show{
+                animation: show-feed-item 1s;
+            }
+            .feed-item-header {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                .time {
+                    margin-right: 8px;
+                }
+                .title {}
+            }
+            .feed-item-content {
+                margin-left: 1em;
+                margin-bottom: 0.8em;
+                margin-top: 0.4em;
+                position: relative;
+                &::before {
+                    content: ' ';
+                    height: 100%;
+                    border: 0.1em #fff solid;
+                    border-radius: 0.2em;
+                    position: absolute;
+                    margin-left: -0.6em;
+                    box-sizing: border-box;
+                }
+            }
         }
     }
 }

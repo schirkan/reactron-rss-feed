@@ -23,10 +23,22 @@ export const components: IReactronComponentDefinition[] = [{
     valueType: 'boolean',
     defaultValue: true,
   }, {
+    displayName: 'Show content',
+    name: 'showContent',
+    valueType: 'boolean',
+    defaultValue: true,
+  }, {
     displayName: 'Visible entries',
     name: 'visibleEntries',
     valueType: 'number',
-    defaultValue: 10,
+    defaultValue: 5,
+    minValue: 1,
+    maxValue: 100,
+  }, {
+    displayName: 'Max entries',
+    name: 'maxEntries',
+    valueType: 'number',
+    defaultValue: 15,
     minValue: 1,
     maxValue: 100,
   }, {

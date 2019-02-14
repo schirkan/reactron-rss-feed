@@ -63,22 +63,25 @@ System.register(['@schirkan/reactron-interfaces', 'moment', 'react'], function (
               }
             }
 
-            var css = "section.RssFeed .feed {\n  white-space: nowrap; }\n  section.RssFeed .feed > div {\n    overflow: hidden; }\n  section.RssFeed .feed .feed-item span {\n    margin-right: 8px; }\n";
+            var css = "@-webkit-keyframes hide-feed-item {\n  0% {\n    max-height: 10em; }\n  50% {\n    opacity: 1; }\n  100% {\n    max-height: 0;\n    opacity: 0; } }\n\n@keyframes hide-feed-item {\n  0% {\n    max-height: 10em; }\n  50% {\n    opacity: 1; }\n  100% {\n    max-height: 0;\n    opacity: 0; } }\n\n@-webkit-keyframes show-feed-item {\n  0% {\n    max-height: 0;\n    opacity: 0; }\n  50% {\n    opacity: 1; }\n  100% {\n    max-height: 10em;\n    opacity: 1; } }\n\n@keyframes show-feed-item {\n  0% {\n    max-height: 0;\n    opacity: 0; }\n  50% {\n    opacity: 1; }\n  100% {\n    max-height: 10em;\n    opacity: 1; } }\n\nsection.RssFeed .feed {\n  overflow: hidden; }\n  section.RssFeed .feed .feed-item {\n    overflow: hidden; }\n    section.RssFeed .feed .feed-item.hide {\n      -webkit-animation: hide-feed-item 1s;\n              animation: hide-feed-item 1s; }\n    section.RssFeed .feed .feed-item.show {\n      -webkit-animation: show-feed-item 1s;\n              animation: show-feed-item 1s; }\n    section.RssFeed .feed .feed-item .feed-item-header {\n      white-space: nowrap;\n      overflow: hidden;\n      text-overflow: ellipsis; }\n      section.RssFeed .feed .feed-item .feed-item-header .time {\n        margin-right: 8px; }\n    section.RssFeed .feed .feed-item .feed-item-content {\n      margin-left: 1em;\n      margin-bottom: 0.8em;\n      margin-top: 0.4em;\n      position: relative; }\n      section.RssFeed .feed .feed-item .feed-item-content::before {\n        content: ' ';\n        height: 100%;\n        border: 0.1em #fff solid;\n        border-radius: 0.2em;\n        position: absolute;\n        margin-left: -0.6em;\n        box-sizing: border-box; }\n";
             styleInject(css);
 
             class RssFeed extends Component {
                 constructor(props) {
                     super(props);
-                    this.state = { loading: false };
+                    this.state = { loading: false, position: 0 };
                     this.loadData = this.loadData.bind(this);
                     this.renderRssFeedItem = this.renderRssFeedItem.bind(this);
+                    this.scrollToNext = this.scrollToNext.bind(this);
                 }
                 componentDidMount() {
                     this.context.topics.subscribe(topicNames.refresh, this.loadData);
                     this.loadData();
+                    this.timer = window.setInterval(this.scrollToNext, this.props.scrollDelay * 1000);
                 }
                 componentWillUnmount() {
                     this.context.topics.unsubscribe(topicNames.refresh, this.loadData);
+                    window.clearInterval(this.timer);
                 }
                 componentDidUpdate(prevProps) {
                     if (JSON.stringify(this.props) !== JSON.stringify(prevProps)) {
@@ -100,23 +103,51 @@ System.register(['@schirkan/reactron-interfaces', 'moment', 'react'], function (
                         }
                     });
                 }
-                renderRssFeedItem(item) {
+                scrollToNext() {
+                    this.setState(prevState => {
+                        let newPosition = prevState.position - 1;
+                        if (newPosition < 0) {
+                            newPosition = this.props.visibleEntries - 1;
+                        }
+                        // let newPosition = prevState.position + 1;
+                        // if (newPosition >= this.props.visibleEntries) {
+                        //   newPosition = 0;
+                        // }
+                        return { position: newPosition };
+                    });
+                }
+                renderRssFeedItem(item, index) {
                     let dateCell = null;
                     if (this.props.showTime) {
                         const timezone = this.context.settings.timezone;
                         const date = moment(item.isoDate).tz(timezone);
-                        dateCell = createElement("span", null, date.format('LT'));
+                        dateCell = createElement("span", { className: "time" }, date.format('LT'));
                     }
-                    return (createElement("div", { key: (item.guid || '') + (item.title || ''), className: "feed-item" },
-                        dateCell,
-                        createElement("span", null, item.title)));
+                    const removeItemIndex = this.props.visibleEntries - 1; // 0;
+                    const newItemIndex = 0; // this.props.visibleEntries - 1;;
+                    let className = 'feed-item';
+                    if (index === removeItemIndex) {
+                        className += ' hide';
+                    }
+                    if (index === newItemIndex) {
+                        className += ' show';
+                    }
+                    const animationDelay = (index === removeItemIndex) ? (this.props.scrollDelay - 1) + 's' : undefined;
+                    return (createElement("div", { key: (item.guid || '') + (item.title || ''), className: className, style: { animationDelay } },
+                        createElement("div", { className: "feed-item-header" },
+                            dateCell,
+                            createElement("span", { className: "title" }, item.title)),
+                        this.props.showContent && createElement("div", { className: "feed-item-content" }, item.contentSnippet || item.content)));
                 }
                 renderRssFeed() {
                     if (!this.state.data) {
                         return null;
                     }
-                    const items = this.state.data.items.slice(0, this.props.visibleEntries);
-                    return (createElement("div", { className: "feed" }, items.map(this.renderRssFeedItem)));
+                    const items = this.state.data.items.slice(0, this.props.maxEntries);
+                    const items1 = items.slice(this.state.position, this.props.visibleEntries);
+                    const items2 = this.state.position > 0 ? items.slice(0, this.state.position) : [];
+                    items1.push(...items2);
+                    return (createElement("div", { className: "feed" }, items1.map(this.renderRssFeedItem)));
                 }
                 renderHeader() {
                     if (!this.props.showHeader) {
@@ -159,10 +190,22 @@ System.register(['@schirkan/reactron-interfaces', 'moment', 'react'], function (
                             valueType: 'boolean',
                             defaultValue: true,
                         }, {
+                            displayName: 'Show content',
+                            name: 'showContent',
+                            valueType: 'boolean',
+                            defaultValue: true,
+                        }, {
                             displayName: 'Visible entries',
                             name: 'visibleEntries',
                             valueType: 'number',
-                            defaultValue: 10,
+                            defaultValue: 5,
+                            minValue: 1,
+                            maxValue: 100,
+                        }, {
+                            displayName: 'Max entries',
+                            name: 'maxEntries',
+                            valueType: 'number',
+                            defaultValue: 15,
                             minValue: 1,
                             maxValue: 100,
                         }, {
