@@ -15,6 +15,7 @@ export default {
     plugins: [
         typescript(),
         postcss({ plugins: [autoprefixer()] }),
+        // postcss({ modules: true }),
         babel({ exclude: 'node_modules/**' }),
         resolve(),
         commonjs(),

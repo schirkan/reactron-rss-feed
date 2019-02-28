@@ -28,6 +28,11 @@ export const components: IReactronComponentDefinition[] = [{
     valueType: 'boolean',
     defaultValue: true,
   }, {
+    displayName: 'Show shadow',
+    name: 'showShadow',
+    valueType: 'boolean',
+    defaultValue: true
+  }, {
     displayName: 'Visible entries',
     name: 'visibleEntries',
     valueType: 'number',

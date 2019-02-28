@@ -63,7 +63,7 @@ System.register(['@schirkan/reactron-interfaces', 'moment', 'react'], function (
               }
             }
 
-            var css = "@-webkit-keyframes hide-feed-item {\n  0% {\n    max-height: 10em; }\n  50% {\n    opacity: 1; }\n  100% {\n    max-height: 0;\n    opacity: 0; } }\n\n@keyframes hide-feed-item {\n  0% {\n    max-height: 10em; }\n  50% {\n    opacity: 1; }\n  100% {\n    max-height: 0;\n    opacity: 0; } }\n\n@-webkit-keyframes show-feed-item {\n  0% {\n    max-height: 0;\n    opacity: 0; }\n  50% {\n    opacity: 1; }\n  100% {\n    max-height: 10em;\n    opacity: 1; } }\n\n@keyframes show-feed-item {\n  0% {\n    max-height: 0;\n    opacity: 0; }\n  50% {\n    opacity: 1; }\n  100% {\n    max-height: 10em;\n    opacity: 1; } }\n\nsection.RssFeed .feed {\n  overflow: hidden; }\n  section.RssFeed .feed .feed-item {\n    overflow: hidden; }\n    section.RssFeed .feed .feed-item.hide {\n      -webkit-animation: hide-feed-item 1s;\n              animation: hide-feed-item 1s; }\n    section.RssFeed .feed .feed-item.show {\n      -webkit-animation: show-feed-item 1s;\n              animation: show-feed-item 1s; }\n    section.RssFeed .feed .feed-item .feed-item-header {\n      white-space: nowrap;\n      overflow: hidden;\n      text-overflow: ellipsis; }\n      section.RssFeed .feed .feed-item .feed-item-header .time {\n        margin-right: 8px; }\n    section.RssFeed .feed .feed-item .feed-item-content {\n      margin-left: 1em;\n      margin-bottom: 0.8em;\n      margin-top: 0.4em;\n      position: relative; }\n      section.RssFeed .feed .feed-item .feed-item-content::before {\n        content: ' ';\n        height: 100%;\n        border: 0.1em #fff solid;\n        border-radius: 0.2em;\n        position: absolute;\n        margin-left: -0.6em;\n        box-sizing: border-box; }\n";
+            var css = "@-webkit-keyframes hide-feed-item {\n  0% {\n    max-height: 10em; }\n  50% {\n    opacity: 1; }\n  100% {\n    max-height: 0;\n    opacity: 0; } }\n\n@keyframes hide-feed-item {\n  0% {\n    max-height: 10em; }\n  50% {\n    opacity: 1; }\n  100% {\n    max-height: 0;\n    opacity: 0; } }\n\n@-webkit-keyframes show-feed-item {\n  0% {\n    max-height: 0;\n    opacity: 0; }\n  50% {\n    opacity: 1; }\n  100% {\n    max-height: 10em;\n    opacity: 1; } }\n\n@keyframes show-feed-item {\n  0% {\n    max-height: 0;\n    opacity: 0; }\n  50% {\n    opacity: 1; }\n  100% {\n    max-height: 10em;\n    opacity: 1; } }\n\nsection.RssFeed .shadow {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n  box-shadow: inset 0px -150px 150px -100px #000; }\n\nsection.RssFeed .feed {\n  overflow: hidden; }\n  section.RssFeed .feed .feed-item {\n    overflow: hidden; }\n    section.RssFeed .feed .feed-item.hide {\n      -webkit-animation: hide-feed-item 1s;\n              animation: hide-feed-item 1s; }\n    section.RssFeed .feed .feed-item.show {\n      -webkit-animation: show-feed-item 1s;\n              animation: show-feed-item 1s; }\n    section.RssFeed .feed .feed-item .feed-item-header {\n      white-space: nowrap;\n      overflow: hidden;\n      text-overflow: ellipsis; }\n      section.RssFeed .feed .feed-item .feed-item-header .time {\n        margin-right: 8px; }\n    section.RssFeed .feed .feed-item .feed-item-content {\n      margin-left: 1em;\n      margin-bottom: 0.8em;\n      margin-top: 0.4em;\n      position: relative; }\n      section.RssFeed .feed .feed-item .feed-item-content::before {\n        content: ' ';\n        height: 100%;\n        border: 0.1em #fff solid;\n        border-radius: 0.2em;\n        position: absolute;\n        margin-left: -0.6em;\n        box-sizing: border-box; }\n";
             styleInject(css);
 
             class RssFeed extends Component {
@@ -165,6 +165,7 @@ System.register(['@schirkan/reactron-interfaces', 'moment', 'react'], function (
                         return createElement("div", null, "No RSS feed URL specified!");
                     }
                     return (createElement("section", { className: "RssFeed" },
+                        createElement("div", { className: "shadow", hidden: !this.props.showShadow }),
                         this.renderHeader(),
                         this.renderRssFeed()));
                 }
@@ -194,6 +195,11 @@ System.register(['@schirkan/reactron-interfaces', 'moment', 'react'], function (
                             name: 'showContent',
                             valueType: 'boolean',
                             defaultValue: true,
+                        }, {
+                            displayName: 'Show shadow',
+                            name: 'showShadow',
+                            valueType: 'boolean',
+                            defaultValue: true
                         }, {
                             displayName: 'Visible entries',
                             name: 'visibleEntries',

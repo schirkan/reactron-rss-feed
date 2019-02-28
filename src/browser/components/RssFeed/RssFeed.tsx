@@ -11,6 +11,7 @@ interface IRssFeedProps {
   showHeader: boolean;
   showTime: boolean;
   showContent: boolean;
+  showShadow: boolean;
   maxEntries: number;
   visibleEntries: number;
   scrollDelay: number;
@@ -150,6 +151,7 @@ export class RssFeed extends React.Component<IRssFeedProps, IRssFeedState> {
 
     return (
       <section className="RssFeed">
+        <div className="shadow" hidden={!this.props.showShadow} />
         {this.renderHeader()}
         {this.renderRssFeed()}
       </section>
