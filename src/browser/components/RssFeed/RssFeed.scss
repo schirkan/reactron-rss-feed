@@ -57,7 +57,8 @@ section.RssFeed {
                 &::before {
                     content: ' ';
                     height: 100%;
-                    border: 0.1em #fff solid;
+                    width: 0.2em;
+                    background-color: white;
                     border-radius: 0.2em;
                     position: absolute;
                     margin-left: -0.6em;
